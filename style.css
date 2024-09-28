@@ -1,22 +1,38 @@
+body {
+    margin: 0;
+}
+details {
+    background-color: #DED;
+}
+.controls {
+    display: flex;
+    align-items: stretch;
+}
 .control {
-    width: 80%;
-    border: 1px solid;
     padding: 1em;
-    margin: 1em 0;
+    margin: 1px;
+    width: 33%;
+    min-width: 300px;
+    border: 1px solid;
+}
+.control h2 {
+    margin: 0;
 }
 
 .source {
-    width: 80%;
-    background-color: #EEE;
-    padding: 0 1em;
+    background-color: #CDC;
+    padding: 1em;
 }
-
 .source textarea {
     width: 100%;
-    height: 5em;
-
+    height: 15em;
+    resize: vertical;
 }
 
 .source input {
     width: 100%;
+}
+
+.diagram {
+    margin-top: 3em;
 }

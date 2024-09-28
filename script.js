@@ -42,7 +42,7 @@ async function definitionsToMermaidText(definitions) {
     });
     mermaidDiagram += `    \n`
     mermaidDiagram += `    %% bindings\n`
-    bindings.forEach(binding=> {
+    bindings.forEach(binding => {
         mermaidDiagram += `    ${binding};\n`;
     });
 
@@ -50,23 +50,25 @@ async function definitionsToMermaidText(definitions) {
 }
 
 async function fetchRabbitDefinitions({url, username, password}) {
-    try {
-        const authHeader = 'Basic ' + btoa(username + ':' + password);
+    const authHeader = 'Basic ' + btoa(username + ':' + password);
 
-        const definitionsUrl = url + "/api/definitions";
-        const response = await fetch(definitionsUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': authHeader,
-                'Content-Type': 'application/json'
-            }
-        });
-        if (!response.ok) {
-            console.error("fetchに失敗", response);
-        } else {
-            return await response.json();
+    const definitionsUrl = url + "/api/definitions";
+    const param = {
+        method: 'GET',
+        headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/json'
         }
-    } catch (e) {
-        console.error("管理APIのアクセスに失敗しました。CORS、URL誤り、認証情報誤りなどが考えられます。", e);
-    }
+    };
+    return fetch(definitionsUrl, param)
+        .catch(cause => {
+            throw new Error("管理APIのアクセスに失敗しました。URL誤りやCORSエラーなどが考えられます。接続設定やログを確認してください。", {cause});
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.error("response status is not ok", response);
+                throw new Error(`管理APIからデータが取得できませんでした。（status:${response.status}）`);
+            }
+            return response.json();
+        });
 }

@@ -6,7 +6,6 @@
     <title>RabbitMQ Bindings Diagram</title>
     <script src="script.js"></script>
     <script type="module">
-        // Mermaidの初期化
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.esm.min.mjs';
 
         mermaid.initialize({startOnLoad: false});
@@ -24,33 +23,45 @@
                 .then(result => document.getElementById("mermaidDiagramArea").innerHTML = result);
         }
 
-        function definitionsTextToMermaidText() {
-            return definitionsToMermaidText(JSON.parse(document.getElementById("definitionsJson").value));
+        async function parseDefinitionsText() {
+            try {
+                return JSON.parse(document.getElementById("definitionsJson").value);
+            } catch (cause) {
+                throw new Error("JSONへのパースに失敗しました。入力内容を見直してください。", {cause});
+            }
+        }
+
+        function logAndAlert(error) {
+            console.error(error);
+            alert(error.message);
         }
 
         document.getElementById('renderDiagram').addEventListener("click", () => {
             return renderDiagramToHtml(document.getElementById("mermaidText").value)
-                .catch(error => console.log(error));
+                .catch(logAndAlert);
         });
         document.getElementById('definitionsToMermaidText').addEventListener("click", () => {
-            definitionsTextToMermaidText()
+            parseDefinitionsText()
+                .then(definitionsToMermaidText)
                 .then(result => document.getElementById("mermaidText").value = result)
-                .catch(error => console.log(error));
+                .catch(logAndAlert);
         });
         document.getElementById('definitionsToDiagram').addEventListener("click", () => {
-            definitionsTextToMermaidText()
-                .then(result => renderDiagramToHtml(result))
-                .catch(error => console.log(error));
+            parseDefinitionsText()
+                .then(definitionsToMermaidText)
+                .then(renderDiagramToHtml)
+                .catch(logAndAlert);
         });
         document.getElementById('loadDefinitions').addEventListener("click", () => {
             loadDefinitions()
-                .then(json => document.getElementById('definitionsJson').value = JSON.stringify(json, null, "  "));
+                .then(json => document.getElementById('definitionsJson').value = JSON.stringify(json, null, "  "))
+                .catch(logAndAlert);
         });
         document.getElementById('loadDefinitionsToDiagram').addEventListener("click", () => {
             loadDefinitions()
-                .then(result => definitionsToMermaidText(result))
-                .then(result => renderDiagramToHtml(result))
-                .catch(error => console.log(error));
+                .then(definitionsToMermaidText)
+                .then(renderDiagramToHtml)
+                .catch(logAndAlert);
         });
 
         // サンプルの出力
@@ -94,39 +105,40 @@
 </head>
 
 <body>
-<h1>RabbitMQ Bindings Diagram</h1>
-<div id="mermaidDiagramArea">ここに表示されます</div>
+<details open>
+    <summary>CONTROL</summary>
+    <div class="controls">
+        <div class="control">
+            <h2>Mermaid</h2>
+            <div class="source">
+                <textarea id="mermaidText"></textarea>
+            </div>
+            <button id="renderDiagram">🎨render</button>
+        </div>
 
-<div class="control">
-    <button id="renderDiagram">↑</button>
+        <div class="control">
+            <h2>Definitions</h2>
+            <div class="source">
+                <textarea id="definitionsJson"></textarea>
+            </div>
+            <button id="definitionsToMermaidText">◀︎Mermaid</button>
+            <button id="definitionsToDiagram">🎨render</button>
+        </div>
 
-    <div class="source">
-        <h2>Mermaid Text</h2>
-        <textarea id="mermaidText"></textarea>
+        <div class="control">
+            <h2>RabbitMQ</h2>
+            <div class="source">
+                <label>url: <input type="text" id="rabbitUrl" value="http://localhost:8080"></label>
+                <label>username: <input type="text" id="rabbitUsername" value="guest"></label>
+                <label>password: <input type="password" id="rabbitPassword" value="guest"></label>
+            </div>
+            <button id="loadDefinitions">◀︎definitions</button>
+            <button id="loadDefinitionsToDiagram">🎨render</button>
+        </div>
     </div>
-</div>
+</details>
 
-<div class="control">
-    <button id="definitionsToMermaidText">↑</button>
-    <button id="definitionsToDiagram">↑↑</button>
-
-    <div class="source">
-        <h2>RabbitMQ Definitions(JSON)</h2>
-        <textarea id="definitionsJson"></textarea>
-    </div>
-</div>
-
-<div class="control">
-    <button id="loadDefinitions">↑</button>
-    <button id="loadDefinitionsToDiagram">↑↑↑</button>
-
-    <div class="source">
-        <h2>RabbitMQ</h2>
-        <label>url: <input type="text" id="rabbitUrl" value="http://localhost:8080"></label>
-        <label>username: <input type="text" id="rabbitUsername" value="guest"></label>
-        <label>password: <input type="password" id="rabbitPassword" value="guest"></label>
-    </div>
-</div>
+<div id="mermaidDiagramArea" class="diagram"></div>
 </body>
 
 </html>
