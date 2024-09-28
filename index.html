@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>RabbitMQ Bindings Diagram</title>
+    <script type="module">
+        // Mermaidの初期化
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.2.1/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: false });
+
+        function convertBindingsToMermaid(bindings) {
+            let mermaidDiagram = 'graph LR;\n';
+
+            let exchanges = new Set();
+            let queues = new Set();
+            let connections = [];
+
+            bindings.forEach(binding => {
+                const { source, destination, destination_type, routing_key } = binding;
+
+                if (destination_type === "queue") {
+                    queues.add(destination);
+                }
+
+                // Exchangeが空の場合はdefault-exchange扱い
+                const exchange = source ? source : "default-exchange";
+
+                // Exchangeノードを追加 (circleとして表現)
+                if (source) {
+                    exchanges.add(exchange);
+                }
+
+                if (routing_key) {
+                    if (routing_key === "#") {
+                        // "#"の1文字はエスケープしてやる必要がある
+                        connections.push(`${exchange} -->|" #35; "| ${destination}`);
+                    } else {
+                        connections.push(`${exchange} -->|" ${routing_key} "| ${destination}`);
+                    }
+                } else {
+                    // 空はラベルを出さない
+                    connections.push(`${exchange} --> ${destination}`);
+                }
+            });
+
+            // ノードの形と色を https://www.rabbitmq.com/tutorials の表現に合わせる
+            exchanges.forEach(exchange => {
+                mermaidDiagram += `    ${exchange}{{${exchange}}}:::exchange;\n`;
+            });
+            queues.forEach(queue => {
+                mermaidDiagram += `    ${queue}[["${queue}"]]:::queue;\n`;
+            });
+            mermaidDiagram += `    classDef exchange fill:#fae0e4;\n`
+            mermaidDiagram += `    classDef queue fill:#ede7b1;\n`
+
+            connections.forEach(connection => {
+                mermaidDiagram += `    ${connection};\n`;
+            });
+
+            return mermaidDiagram;
+        }
+
+        // mermaidTextをSVGに変換してmermaidDiagramAreaに出力します
+        function renderDiagram() {
+            const mermaidText = document.getElementById("mermaidText").value;
+
+            mermaid.render('mermaidDiagram', mermaidText).then(result => {
+                document.getElementById("mermaidDiagramArea").innerHTML = result.svg;
+            }).catch(err => {
+                console.err(err);
+            })
+        }
+        document.getElementById('renderDiagram').addEventListener("click", renderDiagram);
+
+        // bindingsJSONをmermaidTextに設定します
+        function bindingsJsonToMermaidText() {
+            try {
+                const jsonText = document.getElementById("bindingsJson").value;
+                if (!jsonText) {
+                    console.log("bindingsが空なので処理しません");
+                    return;
+                }
+                const mermaidText = convertBindingsToMermaid(JSON.parse(jsonText))
+                document.getElementById("mermaidText").value = mermaidText;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        document.getElementById('bindingsJsonToMermaidText').addEventListener("click", bindingsJsonToMermaidText);
+        document.getElementById('bindingsJsonToMermaidDiagram').addEventListener("click", () => {
+            bindingsJsonToMermaidText();
+            renderDiagram();
+        });
+
+        // 管理APIから情報を取得します
+        function loadDefinitionsFromRabbitMQManagementAPI() {
+            const url = document.getElementById("rabbitUrl").value;
+            const definitionsUrl = url + "/api/definitions";
+
+            const username = document.getElementById('rabbitUsername').value;
+            const password = document.getElementById('rabbitPassword').value;
+            const authHeader = 'Basic ' + btoa(username + ':' + password);
+
+            fetch(definitionsUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': authHeader,
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data from RabbitMQ API');
+                }
+                response.json().then(json => {
+                    document.getElementById('bindingsJson').value = JSON.stringify(json.bindings, null, "  ");
+                }).catch(e => {
+                    console.error(e);
+                });
+            }).catch(e => {
+                console.error("管理APIのアクセスに失敗しました。CORS、URL誤り、認証情報誤りなどが考えられます。", e);
+            });
+
+        }
+        document.getElementById('loadDefinitionsFromRabbitMQManagementAPI').addEventListener("click", loadDefinitionsFromRabbitMQManagementAPI);
+
+        // サンプルの出力
+        document.getElementById('mermaidText').value = "graph LR; exchange -->|routing key| queue";
+        document.getElementById('bindingsJson').value = `[
+  {
+    "source": "my.exchange",
+    "vhost": "/",
+    "destination": "my.queue1",
+    "destination_type": "queue",
+    "routing_key": "",
+    "arguments": {},
+    "properties_key": "~"
+  },
+  {
+    "source": "my.exchange",
+    "vhost": "/",
+    "destination": "my.queue2",
+    "destination_type": "queue",
+    "routing_key": "hoge",
+    "arguments": {},
+    "properties_key": "~"
+  }
+]`;
+
+    </script>
+    <link href="style.css" rel="stylesheet">
+</head>
+
+<body>
+    <h1>RabbitMQ Bindings Diagram</h1>
+    <div id="mermaidDiagramArea">ここに表示されます</div>
+
+    <div class="control">
+        <button id="renderDiagram">↑</button>
+
+        <div class="source">
+            <h2>Mermaid Text</h2>
+            <textarea id="mermaidText"></textarea>
+        </div>
+    </div>
+
+    <div class="control">
+        <button id="bindingsJsonToMermaidText">↑</button>
+        <button id="bindingsJsonToMermaidDiagram">↑↑</button>
+
+        <div class="source">
+            <h2>RabbitMQ Definitions(JSON)</h2>
+            <textarea id="bindingsJson"></textarea>
+        </div>
+    </div>
+
+    <div class="control">
+        <button id="loadDefinitionsFromRabbitMQManagementAPI">↑</button>
+        <button id="loadAPI">↑↑</button>
+
+        <div class="source">
+            <h2>RabbitMQ</h2>
+            <label>url: <input type="text" id="rabbitUrl" value="http://localhost:8080"></label>
+            <label>username: <input type="text" id="rabbitUsername" value="guest"></label>
+            <label>password: <input type="password" id="rabbitPassword" value="guest"></label>
+        </div>
+    </div>
+</body>
+
+</html>

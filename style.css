@@ -1,0 +1,22 @@
+.control {
+    width: 80%;
+    border: 1px solid;
+    padding: 1em;
+    margin: 1em 0;
+}
+
+.source {
+    width: 80%;
+    background-color: #EEE;
+    padding: 0 1em;
+}
+
+.source textarea {
+    width: 100%;
+    height: 5em;
+
+}
+
+.source input {
+    width: 100%;
+}
