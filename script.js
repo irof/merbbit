@@ -4,46 +4,46 @@ async function renderDiagram(mermaid, mermaidText) {
 }
 
 async function definitionsToMermaidText(definitions) {
-    const queues = definitions.queues.map(queue => queue.name);
-    const exchanges = definitions.exchanges.map(exchange => exchange.name);
+    const queues = definitions.queues
+        .map(queue => queue.name);
 
-    const bindings = definitions.bindings;
+    const exchanges = definitions.exchanges
+        .map(exchange => exchange.name);
+
+    const bindings = definitions.bindings
+        .map(binding => {
+            const {source, destination, routing_key} = binding;
+
+            if (routing_key) {
+                if (routing_key === "#") {
+                    // "#"の1文字はエスケープしてやる必要がある
+                    return `${source} -->|" #35; "| ${destination}`;
+                } else {
+                    return `${source} -->|" ${routing_key} "| ${destination}`;
+                }
+            } else {
+                // 空はラベルを出さない
+                return `${source} --> ${destination}`;
+            }
+        });
 
     let mermaidDiagram = 'graph LR;\n';
-
-    let connections = [];
-
-    bindings.forEach(binding => {
-        const {source, destination, destination_type, routing_key} = binding;
-
-        // Exchangeが空の場合はdefault-exchange扱い
-        const exchange = source ? source : "default-exchange";
-
-        if (routing_key) {
-            if (routing_key === "#") {
-                // "#"の1文字はエスケープしてやる必要がある
-                connections.push(`${exchange} -->|" #35; "| ${destination}`);
-            } else {
-                connections.push(`${exchange} -->|" ${routing_key} "| ${destination}`);
-            }
-        } else {
-            // 空はラベルを出さない
-            connections.push(`${exchange} --> ${destination}`);
-        }
-    });
-
     // ノードの形と色を https://www.rabbitmq.com/tutorials の表現に合わせる
+    mermaidDiagram += `    %% exchanges\n`
+    mermaidDiagram += `    classDef exchange fill:#fae0e4;\n`
     exchanges.forEach(exchange => {
         mermaidDiagram += `    ${exchange}{{${exchange}}}:::exchange;\n`;
     });
+    mermaidDiagram += `    \n`
+    mermaidDiagram += `    %% queues\n`
+    mermaidDiagram += `    classDef queue fill:#ede7b1;\n`
     queues.forEach(queue => {
         mermaidDiagram += `    ${queue}[["${queue}"]]:::queue;\n`;
     });
-    mermaidDiagram += `    classDef exchange fill:#fae0e4;\n`
-    mermaidDiagram += `    classDef queue fill:#ede7b1;\n`
-
-    connections.forEach(connection => {
-        mermaidDiagram += `    ${connection};\n`;
+    mermaidDiagram += `    \n`
+    mermaidDiagram += `    %% bindings\n`
+    bindings.forEach(binding=> {
+        mermaidDiagram += `    ${binding};\n`;
     });
 
     return mermaidDiagram;
