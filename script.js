@@ -4,28 +4,20 @@ async function renderDiagram(mermaid, mermaidText) {
 }
 
 async function definitionsToMermaidText(definitions) {
+    const queues = definitions.queues.map(queue => queue.name);
+    const exchanges = definitions.exchanges.map(exchange => exchange.name);
+
     const bindings = definitions.bindings;
 
     let mermaidDiagram = 'graph LR;\n';
 
-    let exchanges = new Set();
-    let queues = new Set();
     let connections = [];
 
     bindings.forEach(binding => {
         const {source, destination, destination_type, routing_key} = binding;
 
-        if (destination_type === "queue") {
-            queues.add(destination);
-        }
-
         // Exchangeが空の場合はdefault-exchange扱い
         const exchange = source ? source : "default-exchange";
-
-        // Exchangeノードを追加 (circleとして表現)
-        if (source) {
-            exchanges.add(exchange);
-        }
 
         if (routing_key) {
             if (routing_key === "#") {

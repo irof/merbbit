@@ -55,28 +55,39 @@
 
         // サンプルの出力
         document.getElementById('mermaidText').value = "graph LR; exchange -->|routing key| queue";
-        document.getElementById('definitionsJson').value = JSON.stringify({
-            bindings: [
-                {
-                    "source": "my.exchange",
-                    "vhost": "/",
-                    "destination": "my.queue1",
-                    "destination_type": "queue",
-                    "routing_key": "",
-                    "arguments": {},
-                    "properties_key": "~"
-                },
-                {
-                    "source": "my.exchange",
-                    "vhost": "/",
-                    "destination": "my.queue2",
-                    "destination_type": "queue",
-                    "routing_key": "hoge",
-                    "arguments": {},
-                    "properties_key": "~"
-                }
-            ]
-        }, null, "  ");
+        document.getElementById('definitionsJson').value = JSON.stringify(
+            {
+                exchanges: [
+                    {name: "my.exchange1"},
+                    {name: "my.exchange2"}
+                ],
+                queues: [
+                    {name: "my.queue1"},
+                    {name: "my.queue2"},
+                    {name: "my.queue3"}
+                ],
+                bindings: [
+                    {
+                        "source": "my.exchange1",
+                        "vhost": "/",
+                        "destination": "my.queue1",
+                        "destination_type": "queue",
+                        "routing_key": "",
+                        "arguments": {},
+                        "properties_key": "~"
+                    },
+                    {
+                        "source": "my.exchange1",
+                        "vhost": "/",
+                        "destination": "my.queue2",
+                        "destination_type": "queue",
+                        "routing_key": "hoge",
+                        "arguments": {},
+                        "properties_key": "~"
+                    }
+                ]
+            }
+            , null, "  ");
 
     </script>
     <link href="style.css" rel="stylesheet">
