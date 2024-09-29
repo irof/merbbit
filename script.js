@@ -19,7 +19,10 @@ async function definitionsToMermaidText(definitions) {
                     // "#"の1文字はエスケープしてやる必要がある
                     return `${source} -->|" #35; "| ${destination}`;
                 } else {
-                    return `${source} -->|" ${routing_key} "| ${destination}`;
+                    // *をエスケープしてやる必要がある
+                    // https://github.com/mermaid-js/mermaid/issues/5824
+                    const routingLabel = routing_key.replace(/\*/g, "#42;");
+                    return `${source} -->|" ${routingLabel} "| ${destination}`;
                 }
             } else {
                 // 空はラベルを出さない
