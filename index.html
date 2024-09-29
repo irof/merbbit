@@ -65,7 +65,7 @@
         });
 
         // サンプルの出力
-        document.getElementById('mermaidText').value = "graph LR; exchange -->|routing key| queue";
+        document.getElementById('mermaidText').value = "graph LR;\n  exchange -->|routing key| queue";
         document.getElementById('definitionsJson').value = JSON.stringify(
             {
                 exchanges: [
@@ -114,6 +114,13 @@
                 <textarea id="mermaidText"></textarea>
             </div>
             <button id="renderDiagram">🎨render</button>
+            <details class="hint">
+                <ul>
+                    <li>Mermaidコードです。</li>
+                    <li>renderボタンを押すと下にダイアグラムが表示されます。</li>
+                    <li>出力を調整したい場合はここを編集してください。</li>
+                </ul>
+            </details>
         </div>
 
         <div class="control">
@@ -121,19 +128,36 @@
             <div class="source">
                 <textarea id="definitionsJson"></textarea>
             </div>
-            <button id="definitionsToMermaidText">◀︎Mermaid</button>
+            <button id="definitionsToMermaidText">◀︎mermaid</button>
             <button id="definitionsToDiagram">🎨render</button>
+            <details class="hint">
+                <ul>
+                    <li><code>{rabbitMQ}/api/definitions</code> で取得できるJSONです。</li>
+                    <li>RabbitMQコンソールのOverviewにある <i>Export definitions</i> からも取得できます。</li>
+                    <li>renderボタンを押すと下にダイアグラムが表示されます。</li>
+                    <li>mermaidボタンを押すとMermaidコードを置き換えます。</li>
+                </ul>
+            </details>
         </div>
 
         <div class="control">
             <h2>RabbitMQ</h2>
             <div class="source">
-                <label>url: <input type="text" id="rabbitUrl" value="http://localhost:8080"></label>
+                <label>url: <input type="text" id="rabbitUrl" value="http://localhost:15672"></label>
                 <label>username: <input type="text" id="rabbitUsername" value="guest"></label>
                 <label>password: <input type="password" id="rabbitPassword" value="guest"></label>
             </div>
             <button id="loadDefinitions">◀︎definitions</button>
             <button id="loadDefinitionsToDiagram">🎨render</button>
+            <details class="hint">
+                <ul>
+                    <li>RabbitMQの管理APIを使用して定義を取得します。</li>
+                    <li><a href="https://www.rabbitmq.com/docs/management#cors">RabbitMQのCORS</a>を有効にしていない場合は呼び出せません。無効にするなりプロキシするなり、なんらかの方法でクリアしてください。</li>
+                    <li>無理なら諦めてDefinitionsを取ってきましょう。</li>
+                    <li>renderボタンを押すと下にダイアグラムが表示されます。</li>
+                    <li>definitionsボタンを押すとDefinitionsを置き換えます。</li>
+                </ul>
+            </details>
         </div>
     </div>
 </details>
