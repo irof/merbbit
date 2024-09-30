@@ -8,6 +8,14 @@ RabbitMQの簡易可視化ツールです。
 - RabbitMQの設定を書くだけでダイアグラムが出る。（接続できるなら。）
 - Mermaidが出るので好きに調整できる。（Mermaidの範囲内で。）
 
+## 使う
+
+### GitHub Pages
+https://irof.github.io/merbbit/
+
+### ローカルほか
+`git clone` でもZIPダウンロードでもして適当なところに配置してください。
+
 ## 動作イメージ
 
 ![スクリーンショット](screenshot.png)
